@@ -1,20 +1,43 @@
 import streamlit as st
 import pandas as pd
-import joblib
+from sklearn.linear_model import LinearRegression
+from sklearn.pipeline import Pipeline
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import OneHotEncoder
 
 st.title("Revenue Prediction Dashboard")
 
-model = joblib.load("revenue_model.pkl")
+# Load dataset
+df = pd.read_csv("sales.csv")
 
+# Features and target
+X = df[["units_sold", "region", "product"]]
+y = df["revenue"]
+
+# Preprocessing
+preprocessor = ColumnTransformer([
+    ("onehot", OneHotEncoder(), ["region", "product"])
+], remainder="passthrough")
+
+# Build and train model
+model = Pipeline([
+    ("preprocess", preprocessor),
+    ("regressor", LinearRegression())
+])
+model.fit(X, y)
+
+# User inputs
 units = st.slider("Units Sold", 10, 100)
-region = st.selectbox("Region", ["North", "South", "East", "West"])
-product = st.selectbox("Product", ["Widget", "Gadget", "Tool", "Device"])
+region = st.selectbox("Region", sorted(df["region"].unique()))
+product = st.selectbox("Product", sorted(df["product"].unique()))
 
+# Predict
 input_df = pd.DataFrame({
     "units_sold": [units],
     "region": [region],
     "product": [product]
 })
-
 predicted_revenue = model.predict(input_df)[0]
+
+# Display result
 st.metric("Predicted Revenue", f"${predicted_revenue:,.2f}")
