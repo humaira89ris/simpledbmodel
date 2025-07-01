@@ -19,17 +19,17 @@ preprocessor = ColumnTransformer([
     ("onehot", OneHotEncoder(), ["region", "product"])
 ], remainder="passthrough")
 
-# Build and train model
+# Model pipeline
 model = Pipeline([
     ("preprocess", preprocessor),
     ("regressor", LinearRegression())
 ])
 model.fit(X, y)
 
-# User inputs
+# User input
 units = st.slider("Units Sold", 10, 100)
-region = st.selectbox("Region", sorted(df["region"].unique()))
-product = st.selectbox("Product", sorted(df["product"].unique()))
+region = st.selectbox("Region", df["region"].unique())
+product = st.selectbox("Product", df["product"].unique())
 
 # Predict
 input_df = pd.DataFrame({
@@ -39,5 +39,5 @@ input_df = pd.DataFrame({
 })
 predicted_revenue = model.predict(input_df)[0]
 
-# Display result
+# Show result
 st.metric("Predicted Revenue", f"${predicted_revenue:,.2f}")
